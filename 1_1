@@ -1,0 +1,44 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class BitcoinPriceMonitor {
+
+    public static void main(String[] args) throws IOException {
+        String apiUrl = "https://api.coindesk.com/v1/bpi/currentprice/BTC.json";
+        URL url = new URL(apiUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // Parsing JSON to get the Bitcoin price
+            String jsonResponse = response.toString();
+            String bitcoinPrice = parseBitcoinPrice(jsonResponse);
+            System.out.println("Current Bitcoin price: " + bitcoinPrice);
+        } else {
+            System.out.println("Error fetching data: " + responseCode);
+        }
+    }
+
+    private static String parseBitcoinPrice(String jsonResponse) {
+        // Assuming the API response contains JSON with a known structure
+        // You might use a JSON library like Gson for more complex parsing
+        // Here, we perform a simple substring search
+        String priceTag = "\"rate\":\"";
+        int startIndex = jsonResponse.indexOf(priceTag) + priceTag.length();
+        int endIndex = jsonResponse.indexOf("\"", startIndex);
+        return jsonResponse.substring(startIndex, endIndex);
+    }
+}
